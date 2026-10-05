@@ -174,8 +174,11 @@ class ClassificationQualityByClassRenderer(MetricRenderer):
 
         if reference_metrics is not None:
             ref_metrics_frame = pd.DataFrame(reference_metrics)
+            ref_names = ref_metrics_frame.columns.tolist()
+            if columns.target_names is not None and isinstance(columns.target_names, dict):
+                ref_names = [columns.target_names.get(x) or columns.target_names.get(int(x)) for x in ref_names]
             z = ref_metrics_frame.iloc[:-1].values
-            x = list(map(str, names))
+            x = list(map(str, ref_names))
             y = ["precision", "recall", "f1-score"]
 
             if current_roc_aucs is not None and len(current_roc_aucs) > 2:
