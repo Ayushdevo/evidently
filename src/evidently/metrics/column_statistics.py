@@ -445,8 +445,7 @@ class InListValueCountCalculation(CountCalculation[InListValueCount]):
 
     def _calculate_value(self, dataset: Dataset):
         column = dataset.column(self.metric.column)
-        value_counts = column.data.value_counts()
-        value: float = float(value_counts.reindex(self.metric.values, fill_value=0).sum())
+        value = column.data.dropna().isin(self.metric.values).sum()
         total = column.data.count()
         return self.result(int(value), value / total)
 
@@ -486,8 +485,7 @@ class OutListValueCountCalculation(CountCalculation[OutListValueCount]):
 
     def _calculate_value(self, dataset: Dataset):
         column = dataset.column(self.metric.column)
-        value_counts = column.data.value_counts()
-        value: float = float(value_counts.reindex(self.metric.values, fill_value=0).sum())
+        value = column.data.dropna().isin(self.metric.values).sum()
         total = column.data.count()
         return self.result(int(total - value), (total - value) / total)
 
