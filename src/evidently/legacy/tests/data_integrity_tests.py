@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import Any
 from typing import ClassVar
 from typing import Dict
 from typing import List
@@ -8,7 +9,6 @@ from typing import Union
 import numpy
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import infer_dtype_from_object  # type: ignore[attr-defined]
 
 from evidently.legacy.base_metric import ColumnName
 from evidently.legacy.metrics import ColumnRegExpMetric
@@ -964,6 +964,29 @@ class ColumnTypesParameter(TestParameters):
     columns: List[ColumnTypeParameter]
 
 
+def _get_dtype_type(dtype: Any) -> type:
+    if isinstance(dtype, type) and issubclass(dtype, np.generic):
+        return dtype
+    try:
+        normalized = pd.api.types.pandas_dtype(dtype)
+    except TypeError:
+        # Preserve legacy aliases accepted by TestColumnsType, including
+        # abstract NumPy types such as "number" that are not concrete dtypes.
+        if not isinstance(dtype, str):
+            raise
+        if dtype in ("datetimetz", "datetime64tz"):
+            return pd.DatetimeTZDtype.type
+        if dtype == "period":
+            raise NotImplementedError
+        if dtype in ("datetime", "timedelta"):
+            dtype += "64"
+        numpy_type = getattr(np, dtype, None)
+        if isinstance(numpy_type, type) and issubclass(numpy_type, np.generic):
+            return numpy_type
+        raise
+    return getattr(normalized, "numpy_dtype", normalized).type
+
+
 class TestColumnsType(Test):
     class Config:
         type_alias = "evidently:test:TestColumnsType"
@@ -1019,12 +1042,12 @@ class TestColumnsType(Test):
             if isinstance(expected_type_object, numpy.dtypes.DateTime64DType):
                 expected_type = expected_type_object.type
             else:
-                expected_type = infer_dtype_from_object(expected_type_object)
+                expected_type = _get_dtype_type(expected_type_object)
 
             if isinstance(real_column_type_object, numpy.dtypes.DateTime64DType):
                 real_column_type = real_column_type_object.type
             else:
-                real_column_type = infer_dtype_from_object(real_column_type_object)
+                real_column_type = _get_dtype_type(real_column_type_object)
             columns.append(
                 ColumnTypeParameter(
                     actual_type=real_column_type.__name__, expected_type=expected_type.__name__, column_name=column_name
