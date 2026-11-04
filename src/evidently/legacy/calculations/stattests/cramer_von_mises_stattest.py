@@ -60,7 +60,7 @@ def _pval_cvm_2samp_exact(s, m, n):
     """
 
     # [1, p. 3]
-    lcm = np.lcm(m, n)
+    lcm = math.lcm(m, n)
     # [1, p. 4], below eq. 3
     a = lcm // m
     b = lcm // n
@@ -71,7 +71,7 @@ def _pval_cvm_2samp_exact(s, m, n):
 
     # bound maximum value that may appear in `gs` (remember both rows!)
     zeta_bound = lcm**2 * (m + n)  # bound elements in row 1
-    combinations = math.factorial(m + n) / (math.factorial(m) * math.factorial(n))
+    combinations = math.comb(m + n, m)
     max_gs = max(zeta_bound, combinations)
     dtype = np.min_scalar_type(max_gs)
 

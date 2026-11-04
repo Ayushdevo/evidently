@@ -1,3 +1,5 @@
+from math import comb
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -120,6 +122,19 @@ def test_cramer_von_mises() -> None:
     reference = pd.Series(stats.norm.rvs(size=100, random_state=0))
     current = pd.Series(stats.norm.rvs(size=100, random_state=1))
     assert cramer_von_mises.func(reference, current, "num", 0.001) == (approx(0.8076839, abs=1e-3), False)
+
+
+@pytest.mark.parametrize(("n_reference", "n_current"), [(2, 2), (4, 5), (6, 9), (20, 20)])
+def test_cramer_von_mises_exact_separated_samples(n_reference: int, n_current: int) -> None:
+    reference = pd.Series(range(n_reference))
+    current = pd.Series(range(n_reference, n_reference + n_current))
+
+    result = cramer_von_mises(reference, current, ColumnType.Numerical, 0.05)
+
+    # Only the two completely separated orderings attain this statistic.
+    expected_pvalue = 2 / comb(n_reference + n_current, n_reference)
+    assert result.drift_score == approx(expected_pvalue, rel=1e-12, abs=0)
+    assert result.drifted == (expected_pvalue <= 0.05)
 
 
 def test_sigma_median_numpy_compat() -> None:
