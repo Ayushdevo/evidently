@@ -113,7 +113,7 @@ class LegacyClassificationQualityByClass(
         raise NotImplementedError()
 
     def _relabel(self, context: "Context", label: Label) -> Label:
-        classification = context.data_definition.get_classification("default")
+        classification = context.data_definition.get_classification(self.task_name())
         if classification is None:
             return label
         actual_labels = context.get_labels(classification.target, classification.prediction_labels)

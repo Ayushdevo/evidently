@@ -142,7 +142,7 @@ class Context:
     _current_graph_level: dict
     _legacy_metrics: Dict[str, Tuple[object, List[BaseWidgetInfo]]]
     _metrics_container: Dict[Fingerprint, List[MetricOrContainer]]
-    _labels: Optional[List[Label]]
+    _labels: Dict[Tuple[str, Optional[str]], List[Label]]
 
     def __init__(self, report: "Report"):
         """Initialize the context with a report configuration.
@@ -158,7 +158,7 @@ class Context:
         self._current_graph_level = self._metrics_graph
         self._legacy_metrics = {}
         self._metrics_container = {}
-        self._labels = None
+        self._labels = {}
         self._additional_data = {}
 
     def init_dataset(
@@ -175,6 +175,7 @@ class Context:
         * `additional_data`: Optional dictionary of additional datasets by name.
         """
         self._input_data = (current_data, reference_data)
+        self._labels.clear()
         self._additional_data = additional_data or {}
 
     def column(self, column_name: str) -> ContextColumnData:
@@ -373,8 +374,9 @@ class Context:
         Returns:
         * List of unique label values across both datasets.
         """
-        if self._labels is not None:
-            return self._labels
+        key = (target, prediction)
+        if key in self._labels:
+            return self._labels[key]
         current_labels = (
             set(self._input_data[0].column(target).data)  # type: ignore[call-overload]
             | set([] if prediction is None else self._input_data[0].column(prediction).data)  # type: ignore[call-overload]
@@ -388,8 +390,8 @@ class Context:
                 | set([] if prediction is None else ref_data.column(prediction).data)  # type: ignore[call-overload]
             )
         )
-        self._labels = list(current_labels | reference_labels)
-        return self._labels
+        self._labels[key] = list(current_labels | reference_labels)
+        return self._labels[key]
 
 
 def _default_input_data_generator(context: "Context", task_name: Optional[str]) -> InputData:
