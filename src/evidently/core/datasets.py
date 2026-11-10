@@ -1156,16 +1156,7 @@ class CategoricalColumnStats:
 
     @property
     def most_common(self) -> Optional[Tuple[Label, LabelStats]]:
-        most_common = None
-        for key, value in self.label_stats.items():
-            if most_common is None:
-                most_common = key
-                continue
-            if self.label_stats[most_common].count < value.count:
-                most_common = key
-        if most_common is None:
-            return None
-        return most_common, self.label_stats[most_common]
+        return max(self.label_stats.items(), key=lambda item: item[1].count.count, default=None)
 
 
 @dataclasses.dataclass
@@ -1768,5 +1759,6 @@ def _collect_categorical_stats(data: pd.Series):
         label_stats={
             label: LabelStats(count=StatCountValue(count, count / total_count))
             for label, count in data.value_counts().items()
+            if count > 0
         },
     )
