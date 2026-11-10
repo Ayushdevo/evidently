@@ -37,7 +37,10 @@ class GroupByMetricCalculation(MetricCalculation[TResult, GroupByMetric]):
         ref = reference_data.subdataset(self.metric.column_name, self.metric.label) if reference_data else None
         dn = self.calculation.display_name
         self.calculation.display_name = _patched_display_name(dn, self.metric)  # type: ignore[method-assign]
-        res = self.calculation.calculate(context, curr, ref)
+        # Legacy calculations read their inputs and cached results from the context.
+        group_context = Context(context.configuration)
+        group_context.init_dataset(curr, ref, context.additional_data)
+        res = self.calculation.calculate(group_context, curr, ref)
         if isinstance(res, tuple):
             curr_res, ref_res = res
         else:
