@@ -1747,6 +1747,7 @@ class PandasDataset(Dataset):
 
 
 def _collect_numerical_stats(data: pd.Series):
+    observed = data.count()
     infinite_count = data.groupby(np.isinf(data)).count().get(True, 0)
     return NumericalColumnStats(
         max=data.max(),
@@ -1757,7 +1758,7 @@ def _collect_numerical_stats(data: pd.Series):
             "p25": data.quantile(0.25),
             "p75": data.quantile(0.75),
         },
-        infinite=StatCountValue(infinite_count, infinite_count / data.count()),
+        infinite=StatCountValue(infinite_count, infinite_count / observed if observed else 0.0),
     )
 
 
