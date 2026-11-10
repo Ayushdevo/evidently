@@ -1714,8 +1714,10 @@ class PandasDataset(Dataset):
         if column_type == ColumnType.Categorical:
             categorical_stats = _collect_categorical_stats(data)
 
+        missing_count = int(data.isna().sum())
+        missing_share = missing_count / len(data) if len(data) else 0.0
         return ColumnStats(
-            general_stats=GeneralColumnStats(missing_values=StatCountValue(0, 0)),
+            general_stats=GeneralColumnStats(missing_values=StatCountValue(missing_count, missing_share)),
             numerical_stats=numerical_stats,
             categorical_stats=categorical_stats,
         )
