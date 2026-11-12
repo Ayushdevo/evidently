@@ -107,6 +107,9 @@ def mmd_pval(x: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
         p_value:p_value
         mmd:mmd distance between x and y
     """
+    if x.shape[0] < 2 or y.shape[0] < 2:
+        raise ValueError("MMD requires at least two observations in each sample")
+
     kernel_mat = kernel_matrix(x, y)
     kernel_mat = kernel_mat - np.diag(np.diagonal(kernel_mat))
 
