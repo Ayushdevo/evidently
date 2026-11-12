@@ -109,6 +109,8 @@ def mmd_pval(x: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
     """
     if x.shape[0] < 2 or y.shape[0] < 2:
         raise ValueError("MMD requires at least two observations in each sample")
+    if not np.isfinite(x).all() or not np.isfinite(y).all():
+        raise ValueError("MMD requires finite observations in both samples")
 
     kernel_mat = kernel_matrix(x, y)
     kernel_mat = kernel_mat - np.diag(np.diagonal(kernel_mat))
