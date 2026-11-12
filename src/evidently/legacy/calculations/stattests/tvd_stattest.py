@@ -7,8 +7,8 @@ Import:
     >>> from evidently.legacy.calculations.stattests import tvd_test
 
 Properties:
-- only for numerical features
-- returns distance
+- only for categorical features
+- returns a permutation-test p-value
 
 Example:
     Using by object:
@@ -58,12 +58,12 @@ def _tvd_stattest(
     feature_type: ColumnType,
     threshold: float,
 ) -> Tuple[float, bool]:
-    """Compute the Total variation distance (TVD) between two arrays
+    """Run a permutation test using total variation distance between samples
     Args:
         reference_data: reference data
         current_data: current data
         feature_type: feature type
-        threshold: all values above this threshold means data drift
+        threshold: p-values below this threshold indicate data drift
     Returns:
         p_value: two-sided p_value
         test_result: whether the drift is detected
