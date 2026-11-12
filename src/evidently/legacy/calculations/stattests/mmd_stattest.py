@@ -107,13 +107,19 @@ def mmd_pval(x: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
         p_value:p_value
         mmd:mmd distance between x and y
     """
+    if x.shape[0] < 2 or y.shape[0] < 2:
+        raise ValueError("MMD requires at least two observations in each sample")
+    if not np.isfinite(x).all() or not np.isfinite(y).all():
+        raise ValueError("MMD requires finite observations in both samples")
+
     kernel_mat = kernel_matrix(x, y)
     kernel_mat = kernel_mat - np.diag(np.diagonal(kernel_mat))
 
     mmd = mmd_2samp(kernel_mat, y.shape[0], permute=False)
     mmd_permuted = np.array([mmd_2samp(kernel_mat, y.shape[0], permute=True) for _ in range(100)])
 
-    p_val = (mmd <= mmd_permuted).mean()
+    # Include the observed labeling in the Monte Carlo null distribution.
+    p_val = (1 + np.count_nonzero(mmd <= mmd_permuted)) / (len(mmd_permuted) + 1)
 
     return p_val, mmd
 
