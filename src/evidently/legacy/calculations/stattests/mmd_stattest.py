@@ -116,7 +116,8 @@ def mmd_pval(x: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
     mmd = mmd_2samp(kernel_mat, y.shape[0], permute=False)
     mmd_permuted = np.array([mmd_2samp(kernel_mat, y.shape[0], permute=True) for _ in range(100)])
 
-    p_val = (mmd <= mmd_permuted).mean()
+    # Include the observed labeling in the Monte Carlo null distribution.
+    p_val = (1 + np.count_nonzero(mmd <= mmd_permuted)) / (len(mmd_permuted) + 1)
 
     return p_val, mmd
 
