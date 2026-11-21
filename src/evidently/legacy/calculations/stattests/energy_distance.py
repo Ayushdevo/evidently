@@ -8,7 +8,7 @@ Import:
 
 Properties:
 - only for numerical features
-- returns p-value
+- returns energy distance
 
 Example:
     Using by object:
